@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "kaohsiung_buildings_plugin"
 FILES = (
     "__init__.py", "plugin.py", "area_algorithm.py", "range_algorithm.py",
-    "detail_algorithm.py", "metadata.txt", "icon.svg", "README.html",
+    "detail_algorithm.py", "parcel_algorithm.py", "metadata.txt", "icon.svg", "README.html",
 )
 
 

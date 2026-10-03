@@ -38,7 +38,7 @@ class BuildingPlugin:
             return
         icon = QIcon(str(Path(__file__).with_name('icon.svg')))
         for label, callback, toolbar in [
-            ('1. 依選取範圍取得建物資料', self.open_range, True),
+            ('1. 依選取範圍取得土地／建物資料', self.open_range, True),
             ('2. 補齊建物資料與樓層面積', self.open_details, True),
             ('使用說明', self.help, False),
         ]:

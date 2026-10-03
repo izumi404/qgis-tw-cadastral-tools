@@ -135,6 +135,54 @@ class Source:
                     raise QgsProcessingException('完整建號仍回傳滿額，無法核實資料完整性。')
                 queue.extend(current + digit for digit in '0123456789')
 
+    def lands(self, section):
+        """Use uncapped branches and preserve multiple source pieces of one parcel."""
+        complete, queue = [], deque([''])
+        while queue:
+            self.check()
+            prefix = queue.popleft()
+            covered = next(((term, rows) for term, rows in complete if term in prefix), None)
+            if covered is None:
+                term = prefix
+                rows = self.listing('land', AA48=section, AA49=prefix)
+                if len(rows) < CAP:
+                    complete.append((term, rows))
+            else:
+                term, rows = covered
+            for row in rows:
+                number = str(row.get('aa49', ''))
+                if row.get('aa48') != section or not re.fullmatch(r'\d{8}', number) or term not in number:
+                    raise QgsProcessingException('地號或包含搜尋語義異常；停止以免誤報完整。')
+            if len(rows) >= CAP:
+                if len(prefix) == 8:
+                    raise QgsProcessingException('完整地號仍達查詢上限，無法確認清單完整。')
+                queue.extend(prefix + digit for digit in '0123456789')
+                # A capped response can stop halfway through a multi-piece parcel.
+                continue
+            grouped = {}
+            for row in rows:
+                if row['aa49'].startswith(prefix):
+                    grouped.setdefault(row['aa49'], []).append(row)
+            for number, pieces in grouped.items():
+                self.check()
+                row = dict(pieces[0])
+                attrs = {k: v for k, v in row.items() if k not in ('wkt', 'bbox')}
+                if any({k: v for k, v in p.items() if k not in ('wkt', 'bbox')} != attrs for p in pieces):
+                    raise QgsProcessingException(f'{section}/{number} 同一地號屬性衝突；請用新快取核對。')
+                wkts = list(dict.fromkeys(p.get('wkt') or '' for p in pieces))
+                if len(wkts) > 1:
+                    geometries = [QgsGeometry.fromWkt(w) for w in wkts]
+                    if any(g.isEmpty() or not g.isGeosValid() for g in geometries):
+                        raise QgsProcessingException(f'{section}/{number} 多片宗地圖形無效，不能安全合併。')
+                    merged = QgsGeometry.unaryUnion(geometries)
+                    if merged.isEmpty() or merged.lastError() or not merged.isGeosValid():
+                        raise QgsProcessingException(f'{section}/{number} 多片宗地合併失敗。')
+                    row['wkt'] = merged.asWkt()
+                    box = merged.boundingBox()
+                    row['bbox'] = [box.xMinimum(), box.yMinimum(), box.xMaximum(), box.yMaximum()]
+                row['source_parts'] = len(wkts)
+                yield row
+
 
 def valid_polygon(wkt):
     if not wkt:

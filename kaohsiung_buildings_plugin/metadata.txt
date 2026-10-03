@@ -1,0 +1,14 @@
+[general]
+name=高雄建物資料助手
+description=依多邊形下載高雄登記建物定位點，並依事務所、地段、建號補齊基本資料及樓層面積明細。
+about=保留原有位置；支援查詢快取、取消及續跑。提供範圍查詢、既有點圖層補齊資料兩個 Processing 工具。非政府官方外掛；資料以來源網站為準。
+version=1.0.0
+qgisMinimumVersion=3.44
+qgisMaximumVersion=3.99
+author=Custom GIS Tools
+email=
+category=Vector
+icon=icon.svg
+hasProcessingProvider=True
+experimental=False
+deprecated=False

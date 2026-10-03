@@ -1,0 +1,31 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>高雄建物資料助手</title>
+<style>body{font:17px/1.8 system-ui,sans-serif;max-width:850px;margin:44px auto;padding:0 24px;color:#18332f}h1,h2{color:#176d66}code{background:#edf5f3;padding:2px 6px}li{margin:7px 0}</style>
+<h1>高雄建物資料助手 1.0</h1>
+<p>支援 QGIS 3.44，已以 3.44.7 測試。這是自訂外掛，非政府官方產品。無需安裝其他 Python 套件。</p>
+<h2>安裝</h2><ol><li>QGIS → Plugins → Manage and Install Plugins → Install from ZIP。</li>
+<li>選擇 <code>kaohsiung_buildings_plugin-1.0.0.zip</code>，安裝並啟用「高雄建物資料助手」。ZIP 不用先解壓。</li></ol>
+<h2>選一個 polygon 就可以</h2><ol><li>載入 SHP 範圍圖層，用選取工具選擇所需 polygon；保持該圖層為目前圖層。</li>
+<li>Plugins → 高雄建物資料助手 →「1. 依選取範圍取得建物資料」。會自動採用已選取的 polygon；未選取圖徵時用整個圖層。</li>
+<li>選一個快取資料夾及輸出 .gpkg，按 Run。自動找相交行政區、地段、事務所，再篩出界內定位點。</li>
+<li>需要圖中全部欄位時勾「完整資料」，同時指定樓層面積表輸出。可選多個 polygon；跨段會自動查多組代碼。</li></ol>
+<p><strong>範圍查詢只支援高雄市。</strong>範圍多邊形在本機計算，完整 SHP 不會上傳；查詢會向官方網站送出行政區、地段與建號等代碼。</p>
+<h2>已有定位點，不必重抓</h2><p>選擇原本的建物定位點，開「2. 補齊建物資料與樓層面積」。地段欄選 <code>section</code>，建號欄選 <code>build_no</code>。
+若圖層有 <code>office</code> 會自動採用；之前那份楠梓點圖層沒有此欄，可用備用值 <code>EE</code>。
+如果是其他地政事務所，請選正確的事務所欄或輸入相應代碼，不能一律用 EE。</p>
+<h2>EE＋0335 是甚麼？</h2><p><code>EE</code>＝楠梓地政事務所；<code>0335</code>＝楠梓段一小段；<code>00690000</code>＝建號。
+完整識別鍵為 <code>EE|0335|00690000</code>。單靠建號並非唯一識別。Polygon 是查詢範圍，可以對應多組事務所／地段。</p>
+<h2>輸出</h2><ul><li>一般定位點：日期、地址、樓層、構造、面積、座標及事務所代碼。</li>
+<li>完整資料點：保留原始位置與欄位，新增行政區、事務所名稱、地段、建物面積、樓層數、完成日期、主要用途、查詢狀態、來源網址等 <code>moi_</code> 欄。</li>
+<li>樓層面積表：一層、二層、屋頂突出物、陽台、騎樓等，每項一列。以 <code>building_key</code> 連接定位點；保留來源順序及面積原文。</li></ul>
+<p>完整資料需要逐個建號查一次。26,896筆單計每秒一次已約7.5小時，另加網站回應時間；建議先選小範圍／少量點測試。</p>
+<h2>續跑與資料限制</h2><ul><li>取消後用相同快取資料夾重跑會重用成功結果；更新最新資料請改用新空資料夾。取消時輸出可能只有部分記錄，請核對報告 finished。</li>
+<li>快取資料夾內有範圍查詢 report.json、缺座標 unlocated.json、明細查詢 detail_report.json。這些報告對應最近一次執行。</li>
+<li>每次請求至少間隔1秒，網站回傳401/403/429會停止。無法即時取消正在等待的網路請求，最多等該請求超時。</li>
+<li>每個登記建號一筆。同棟單位可能重疊；定位點不是建築外框。日期缺漏或無效不會推算。</li>
+<li>候選地段採範圍外擴100米，缺界線地段仍納入；最後按原範圍精確篩點。遠離所屬地段界的錯置點仍可能遺漏。</li>
+<li>來源沒有官方可核證全量總數，不含未登記、未提供或無法定位的建物。點位精度依原網站。</li></ul>
+<h2>來源與開發參考</h2><p><a href="https://gisdawh.kcg.gov.tw/landeasy/">高雄地籍圖資服務網</a>；
+<a href="https://easymap.moi.gov.tw/Z10Web/Normal">內政部地籍圖資網路便民服務系統</a>；
+<a href="https://doc.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugins/plugins.html">QGIS 外掛結構文件</a>。</p>
+
+<h2>使用前請自行核對</h2><p><strong>請使用者自行 check 資料同位置啱唔啱。</strong>請抽查事務所、地段、建號、建物完成日期、面積及定位點，與來源網站和實際情況核對，並檢查缺漏、失敗紀錄及範圍。</p><p>本工具不保證資料正確、完整或最新，亦不代表已經人工或官方核證。正式使用前應另行核實，並記錄資料來源及查詢日期。</p>
